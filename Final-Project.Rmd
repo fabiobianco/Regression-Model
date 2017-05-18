@@ -9,22 +9,70 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+```{r}
+library(ggplot2)
+library(GGally)
+library(datasets)
+```
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+1. Is an automatic or manual transmission better for MPG
+2. Quantify the MPG difference between automatic and manual transmissions
 
 ```{r cars}
-summary(cars)
+data("mtcars")
+names(mtcars)
+head(mtcars)
+```
+```{r, message=FALSE, warning=FALSE}
+g = ggpairs(mtcars, lower = list(continuous = wrap("smooth", method = "lm", alpha = 0.3, color = "blue")) )
+g
+
 ```
 
-## Including Plots
+```{r}
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+mtcars2 <- mtcars
+mtcars2$am <- as.factor(mtcars2$am)
+mtcars2$cyl <- as.factor(mtcars2$cyl)
+mtcars2$vs <- as.factor(mtcars2$vs)
+mtcars2$gear <- as.factor(mtcars2$gear)
+mtcars2$carb <- as.factor(mtcars2$carb)
+mtcars2 <- mtcars2[ , c(1, 9, 2:8, 10,11)]
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+mtcars1 <- mtcars[mtcars$am == 1,] # mean MPG for manual trasmission system
+summary(mtcars1$mpg)
+mtcars0 <- mtcars[mtcars$am == 0,] # mean MPG for automatic trasmission system
+summary(mtcars0$mpg)
+```
+
+```{r, exploratory analysis 1}
+g = ggplot(mtcars, aes(am, mpg, color = am)) + geom_point() 
+g = g + xlab("Trasmission type (0 - Automatic, 1 - Manual)") + ylab("Miles per gallon (MPG)")
+g = g + labs(title = paste("Title..."))
+g
+```
+
+It's seem to be a relationship between the trasmission type `am`(predictor) and miles per gallon `MPG` (outcome). 
+
+```{r, exploratory analysis 2}
+g = ggplot(mtcars, aes(as.factor(am), mpg, color = am)) + geom_boxplot() 
+g = g + xlab("Trasmission type (0 - Automatic, 1 - Manual)") + ylab("Miles per gallon (MPG)")
+g = g + labs(title = paste("Title..."))
+g
+```
+```{r, }
+fit <- lm(mpg ~ am,  data = mtcars)
+summary(fit)
+```
+
+
+
+```{r}
+g = ggplot(mtcars, aes(am, y = mpg, color = am)) + geom_point() + geom_smooth(method = "lm")
+g = g + xlab("Trasmission type (0 - Automatic, 1 - Manual)") + ylab("Miles per gallon (MPG)")
+g = g + labs(title = paste("Title..."))
+g
+```
