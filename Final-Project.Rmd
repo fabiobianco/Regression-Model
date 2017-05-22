@@ -2,7 +2,14 @@
 title: "Regression-model-final-project"
 author: "by fabiobianco"
 date: "04/06/2017"
-output: html_document
+output:
+  pdf_document:
+    fig_caption: yes
+    fig_height: 6
+    fig_width: 7
+    latex_engine: xelatex
+  html_document:
+    keep_md: yes
 ---
 
 ```{r setup, include=FALSE}
