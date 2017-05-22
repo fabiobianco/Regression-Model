@@ -1,7 +1,7 @@
 ---
 title: "Regression-model-final-project"
-author: "fabiobianco"
-date: "17/5/2017"
+author: "by fabiobianco"
+date: "04/06/2017"
 output: html_document
 ---
 
@@ -15,31 +15,35 @@ library(GGally)
 library(datasets)
 ```
 
-1. Is an automatic or manual transmission better for MPG
-2. Quantify the MPG difference between automatic and manual transmissions
 
+##### Executive Summary
+
+In this paper we are interested in exploring the relationship between a set of variables and miles per gallon (MPG) (outcome) for the `mtcars` dataset. We are particularly interested in the following two questions:
+
+* Is an automatic or manual transmission better for MPG
+* Quantify the MPG difference between automatic and manual transmissions
+
+
+##### Exploratory data analysis
 ```{r cars}
 data("mtcars")
+dim(mtcars)
 names(mtcars)
+str(mtcars)
 head(mtcars)
 ```
-```{r, message=FALSE, warning=FALSE}
+
+Now we display the pairwise relations between variables in the `mtcars` dataset
+
+```{r,  message=FALSE, warning=FALSE}
 g = ggpairs(mtcars, lower = list(continuous = wrap("smooth", method = "lm", alpha = 0.3, color = "blue")) )
 g
 
 ```
 
-```{r}
+In the first columb we can see the relation between the `mpg` variable (outcome) and the other variables (predictors) it seems to be a linear relation (with a positive or negative slope) for every row/predictor and outcome. 
 
-mtcars2 <- mtcars
-mtcars2$am <- as.factor(mtcars2$am)
-mtcars2$cyl <- as.factor(mtcars2$cyl)
-mtcars2$vs <- as.factor(mtcars2$vs)
-mtcars2$gear <- as.factor(mtcars2$gear)
-mtcars2$carb <- as.factor(mtcars2$carb)
-mtcars2 <- mtcars2[ , c(1, 9, 2:8, 10,11)]
-```
-
+Now we explore the relation between the `mpg` variable (outcome) and the `am` variable (predictor)
 
 ```{r}
 mtcars1 <- mtcars[mtcars$am == 1,] # mean MPG for manual trasmission system
@@ -48,31 +52,67 @@ mtcars0 <- mtcars[mtcars$am == 0,] # mean MPG for automatic trasmission system
 summary(mtcars0$mpg)
 ```
 
-```{r, exploratory analysis 1}
-g = ggplot(mtcars, aes(am, mpg, color = am)) + geom_point() 
+```{r}
+g = ggplot(mtcars, aes(am, y = mpg, color = am)) + geom_point() + geom_smooth(method = "lm")
 g = g + xlab("Trasmission type (0 - Automatic, 1 - Manual)") + ylab("Miles per gallon (MPG)")
-g = g + labs(title = paste("Title..."))
+g = g + labs(title = paste("MPG vs Trasmission type"))
 g
 ```
 
-It's seem to be a relationship between the trasmission type `am`(predictor) and miles per gallon `MPG` (outcome). 
 
-```{r, exploratory analysis 2}
-g = ggplot(mtcars, aes(as.factor(am), mpg, color = am)) + geom_boxplot() 
-g = g + xlab("Trasmission type (0 - Automatic, 1 - Manual)") + ylab("Miles per gallon (MPG)")
-g = g + labs(title = paste("Title..."))
-g
+##### Regression Models
+
+Now fit a multivariable linear regression model for the `mtcars` dataset
+
+```{r, Multivariable linear regression}
+fitall <- lm(mpg ~ . , data = mtcars)
+summary(fitall)
 ```
-```{r, }
+
+The  `fitall` model accounts for 81% of the variance as noted by the adjusted Rsquared value.
+
+Now we investigate the relationship between trasmission type `am`(predictor) and miles per gallon `MPG` (outcome)
+
+```{r, linear regression analysis}
 fit <- lm(mpg ~ am,  data = mtcars)
 summary(fit)
 ```
 
+The `fit` model accounts for 34% of the variance as noted by the adjusted Rsquared value. There seems other predictors have some impact on MPG. The `fit` model predicts an extra 7.245 mpg consuption for manual trasmission veichle versus automatic trasmission veichle. Examining the regression output value, we can see that the p-value for `am` is very clode to zero, indicating there is strong evidence that the coefficient is different fro zero when using this one-variable model.
 
+
+As a final step we search the model that best fit the data. 
+
+```{r, include=FALSE}
+bestmodel <- step(fitall)
+```
 
 ```{r}
-g = ggplot(mtcars, aes(am, y = mpg, color = am)) + geom_point() + geom_smooth(method = "lm")
-g = g + xlab("Trasmission type (0 - Automatic, 1 - Manual)") + ylab("Miles per gallon (MPG)")
-g = g + labs(title = paste("Title..."))
-g
+summary(bestmodel)
 ```
+
+The `bestmodel` accounts for 83% of the variance as noted by the adjusted Rsquared value. 
+
+
+##### Appendix
+
+Residual for **Full model** (all predictors)
+```{r}
+par(mfrow=c(2, 2))
+plot(fitall)
+```
+
+Residual for **single-variable model** (only `am` predictor)
+
+```{r}
+par(mfrow=c(2,2))
+plot(fit)
+```
+
+Residual for **best model** (only `am`, `wt`, `qsec` predictors)
+
+```{r}
+par(mfrow=c(2, 2))
+plot(bestmodel)
+```
+
